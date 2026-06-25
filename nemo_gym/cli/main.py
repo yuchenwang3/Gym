@@ -43,7 +43,11 @@ class _GymArgumentParser(argparse.ArgumentParser):
     def error(self, message: str) -> None:
         match = re.search(r"invalid choice: '([^']+)' \(choose from (.+)\)", message)
         if match:
-            typo, choices = match.group(1), re.findall(r"'([^']+)'", match.group(2))
+            typo = match.group(1)
+            # Python < 3.12 quotes each choice ('a', 'b'); 3.12+ does not (a, b). Handle both.
+            choices = re.findall(r"'([^']+)'", match.group(2)) or [
+                choice.strip() for choice in match.group(2).split(",")
+            ]
             message += _did_you_mean(typo, choices)
         super().error(message)
 
